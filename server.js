@@ -8,12 +8,16 @@ const SECRET_SESSION = process.env.SECRET_SESSION;
 console.log(SECRET_SESSION)
 const app = express();
 
+//isLoggedIn middleware
+const isLoggedIn = require('./middleware/isLoggedIn')
+
 app.set('view engine', 'ejs');
 
 app.use(require('morgan')('dev'));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(__dirname + '/public'));
 app.use(layouts);
+
 
 // secret: what we actually will be giving the user on our site as a session  cookie
 //resave: saves the session even if its modified
@@ -27,11 +31,29 @@ const sessionObj = {
 
 app.use(session(sessionObj))
 
+//initialize passport and run through middleware
+app.use(passport.initialize())
+app.use(passport.session())
+
+// Flash
+//using flash throughout app to send temp messages to user
+app.use(flash());
+
+//messages that will be accessible to every view
+app.use((req, res, next) => {
+  //before every route, we will attach a user to res.local
+  res.locals.alerts = req.flash();
+  res.locals.currentUser = req.user
+  next();
+
+})
+
 app.get('/', (req, res) => {
-  res.render('index');
+  console.log(res.locals.alerts)
+  res.render('index', {alerts: res.locals.alerts};
 });
 
-app.get('/profile', (req, res) => {
+app.get('/profile', isLoggedIn, (req, res) => {
   res.render('profile');
 });
 
