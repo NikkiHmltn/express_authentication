@@ -13,41 +13,6 @@ const isLoggedIn = require('./middleware/isLoggedIn')
 
 app.set('view engine', 'ejs');
 
-app.use(require('morgan')('dev'));
-app.use(express.urlencoded({ extended: false }));
-app.use(express.static(__dirname + '/public'));
-app.use(layouts);
-
-
-// secret: what we actually will be giving the user on our site as a session  cookie
-//resave: saves the session even if its modified
-//saveUninitialize: if we have a new session, we save it, therefore making it true
-
-const sessionObj = {
-  secret: SECRET_SESSION,
-  resave: false,
-  saveUninitialize: true
-}
-
-app.use(session(sessionObj))
-
-//initialize passport and run through middleware
-app.use(passport.initialize())
-app.use(passport.session())
-
-// Flash
-//using flash throughout app to send temp messages to user
-app.use(flash());
-
-//messages that will be accessible to every view
-app.use((req, res, next) => {
-  //before every route, we will attach a user to res.local
-  res.locals.alerts = req.flash();
-  res.locals.currentUser = req.user
-  next();
-
-})
-
 app.get('/', (req, res) => {
   console.log(res.locals.alerts)
   res.render('index', {alerts: res.locals.alerts})
